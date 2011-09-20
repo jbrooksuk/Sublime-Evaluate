@@ -1,0 +1,3 @@
+[
+	{ "keys": ["ctrl+shift+e"], "command": "evaluate" }
+]
