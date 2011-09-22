@@ -1,7 +1,3 @@
-# This is a modified version of wbonds prefixr plugin.
-# I was interested in how he handles threads, and selections + replacements.
-# So by re-typing out everything and implementing eval, this is the result.
-
 from __future__ import division
 import sublime
 import sublime_plugin
@@ -84,8 +80,9 @@ class EvaluateCall(threading.Thread):
 
     def run(self):
         try:
-            self.result = eval(self.original)
+            tmp_global = {}
+            code = compile(self.original, '<string>', 'eval')
+            self.result = eval(code, tmp_global)
         except (ValueError, SyntaxError):
             pass
-
         return
