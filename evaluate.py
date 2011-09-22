@@ -2,6 +2,7 @@
 # I was interested in how he handles threads, and selections + replacements.
 # So by re-typing out everything and implementing eval, this is the result.
 
+from __future__ import division
 import sublime
 import sublime_plugin
 import threading
