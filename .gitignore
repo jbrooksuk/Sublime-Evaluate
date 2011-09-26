@@ -1,2 +1,2 @@
-
-evaluate.pyc
+# Ignore .pyc files
+*.pyc
