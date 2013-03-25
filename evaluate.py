@@ -3,6 +3,11 @@ import sublime
 import sublime_plugin
 import threading
 
+sublime_version = 2
+
+if not sublime.version() or int(sublime.version()) > 3000:
+    sublime_version = 3
+
 class EvaluateCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         sels = self.view.sel()
@@ -15,9 +20,12 @@ class EvaluateCommand(sublime_plugin.TextCommand):
             thread.start()
 
         self.view.sel().clear()
-        # edit = self.view.begin_edit('evaluate')
+        if sublime_version == 2:
+            edit = self.view.begin_edit('evaluate')
 
         self.handle_threads(edit, threads)
+
+        self.view.end_edit()
 
     def handle_threads(self, edit, threads, offset=0, i=0, dir=1):
         next_threads = []
@@ -44,8 +52,6 @@ class EvaluateCommand(sublime_plugin.TextCommand):
             sublime.set_timeout(lambda: self.handle_threads(edit, threads, offset, i, dir), 100)
 
             return
-
-        self.view.end_edit(edit)
 
         self.view.erase_status('evaluate')
         selections = len(self.view.sel())
