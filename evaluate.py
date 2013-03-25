@@ -3,7 +3,6 @@ import sublime
 import sublime_plugin
 import threading
 
-
 class EvaluateCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         sels = self.view.sel()
@@ -16,7 +15,7 @@ class EvaluateCommand(sublime_plugin.TextCommand):
             thread.start()
 
         self.view.sel().clear()
-        edit = self.view.begin_edit('evaluate')
+        # edit = self.view.begin_edit('evaluate')
 
         self.handle_threads(edit, threads)
 
