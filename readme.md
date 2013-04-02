@@ -8,7 +8,7 @@ Sublime-Evaluate is able to evaluate the `math` and `datetime` import as part of
 
     math.pi * 60
 
-    datetime.date(2013,4,02) # Returns a formatted date
+    datetime.date(2013,4,2) # Returns a formatted date
 
     datetime.date.today()
 
