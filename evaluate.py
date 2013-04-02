@@ -3,6 +3,7 @@ import sublime
 import sublime_plugin
 import threading
 import math
+import datetime
 
 sublime_version = 2
 
@@ -88,7 +89,8 @@ class EvaluateCall(threading.Thread):
     def run(self):
         try:
             tmp_global = {
-                "pi": math.pi
+                "math": math,
+                "datetime": datetime
             }
             code = compile(self.original, '<string>', 'eval')
             self.result = eval(code, tmp_global)
