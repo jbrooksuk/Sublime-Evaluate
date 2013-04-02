@@ -2,6 +2,7 @@ from __future__ import division
 import sublime
 import sublime_plugin
 import threading
+import math
 
 sublime_version = 2
 
@@ -25,7 +26,8 @@ class EvaluateCommand(sublime_plugin.TextCommand):
 
         self.handle_threads(edit, threads)
 
-        self.view.end_edit()
+        if sublime_version == 2:
+            self.view.end_edit(edit)
 
     def handle_threads(self, edit, threads, offset=0, i=0, dir=1):
         next_threads = []
@@ -85,7 +87,9 @@ class EvaluateCall(threading.Thread):
 
     def run(self):
         try:
-            tmp_global = {}
+            tmp_global = {
+                "pi": math.pi
+            }
             code = compile(self.original, '<string>', 'eval')
             self.result = eval(code, tmp_global)
         except (ValueError, SyntaxError):
