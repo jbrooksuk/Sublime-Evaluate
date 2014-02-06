@@ -1,4 +1,4 @@
-# Sublime Evaluate
+# Sublime Evaluate [![Gittip](http://badgr.co/gittip/jbrooksuk.png)](https://www.gittip.com/jbrooksuk/)
 This plugin evaluates current selections.
 
 # Evaluation Environment
