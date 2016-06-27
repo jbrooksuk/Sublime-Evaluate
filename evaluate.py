@@ -70,7 +70,7 @@ class EvaluateCommand(sublime_plugin.TextCommand):
         main = str(result)
         self.view.replace(edit, sel, main)
 
-        end_point = sel.begin() + len(prefix) + len(main)
+        end_point = (sel.begin() + len(prefix) + len(main)) - len(original)
         self.view.sel().add(sublime.Region(end_point, end_point))
 
         return offset + len(main) - len(original)
