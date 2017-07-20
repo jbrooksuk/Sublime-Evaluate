@@ -16,8 +16,8 @@ class EvaluateCommand(sublime_plugin.TextCommand):
 
         threads = []
         for sel in sels:
-            string = self.view.substr(sel)
-            thread = EvaluateCall(sel, string, 5)
+            to_eval = self.view.substr(sel)
+            thread = EvaluateCall(sel, to_eval, 5)
             threads.append(thread)
             thread.start()
 
@@ -77,9 +77,9 @@ class EvaluateCommand(sublime_plugin.TextCommand):
 
 
 class EvaluateCall(threading.Thread):
-    def __init__(self, sel, string, timeout):
+    def __init__(self, sel, to_eval, timeout):
         self.sel = sel
-        self.original = string
+        self.original = to_eval
         self.timeout = timeout
         self.result = self.original  # Default result
         threading.Thread.__init__(self)
