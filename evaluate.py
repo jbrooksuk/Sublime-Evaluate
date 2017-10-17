@@ -4,6 +4,7 @@ import sublime_plugin
 import threading
 import math
 import datetime
+import subprocess
 
 sublime_version = 2
 
@@ -16,8 +17,8 @@ class EvaluateCommand(sublime_plugin.TextCommand):
 
         threads = []
         for sel in sels:
-            string = self.view.substr(sel)
-            thread = EvaluateCall(sel, string, 5)
+            to_eval = self.view.substr(sel)
+            thread = EvaluateCall(sel, to_eval, 5)
             threads.append(thread)
             thread.start()
 
@@ -30,31 +31,11 @@ class EvaluateCommand(sublime_plugin.TextCommand):
         if sublime_version == 2:
             self.view.end_edit(edit)
 
-    def handle_threads(self, edit, threads, offset=0, i=0, dir=1):
-        next_threads = []
-        for thread in threads:
-            if thread.is_alive():
-                next_threads.append(thread)
-                continue
-            offset = self.replace(edit, thread, offset)
-        threads = next_threads
+    def handle_threads(self, edit, threads, offset=0):
+        for t in threads:
+            t.join(5) # TODO: use bulk join maybe
+            offset = self.replace(edit, t, offset)
 
-        if len(threads):
-            before = i % 8
-            after = (7) - before
-            if not after:
-                dir = -1
-            if not before:
-                dir = 1
-            i += dir
-            self.view.set_status('evaluate', 'Evaluate [%s=%s]' % \
-                (' ' * before, '' * after))
-
-            sublime.set_timeout(lambda: self.handle_threads(edit, threads, offset, i, dir), 100)
-
-            return
-
-        self.view.erase_status('evaluate')
         selections = len(self.view.sel())
         sublime.status_message('Evaluated %s selection%s!' % (selections, '' if selections == 1 else 's'))
 
@@ -77,21 +58,51 @@ class EvaluateCommand(sublime_plugin.TextCommand):
 
 
 class EvaluateCall(threading.Thread):
-    def __init__(self, sel, string, timeout):
+    def __init__(self, sel, to_eval, timeout):
         self.sel = sel
-        self.original = string
+        self.original = to_eval
         self.timeout = timeout
         self.result = self.original  # Default result
         threading.Thread.__init__(self)
 
     def run(self):
-        try:
-            tmp_global = {
-                "math": math,
-                "datetime": datetime
-            }
-            code = compile(self.original, '<string>', 'eval')
-            self.result = eval(code, tmp_global)
-        except (ValueError, SyntaxError):
-            pass
-        return
+        '''Evaluate `self.original`, save to `self.result`.
+        If `self.timeout` reached, the run fails and nothing change.
+
+        If `self.original` starts with '!', after trimming leading spaces,
+        it is evaluated as Shell code. (The same convention as ipython).
+
+        Otherwise, it is evaluated as Python code.'''
+
+        if self.original.lstrip().startswith('!'):
+            # Remove the first bang
+            shell_code = self.original.lstrip()[1:]
+            try:
+                p = subprocess.Popen(shell_code,
+                                    shell=True,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT)
+                # stderr goes to stdout
+                out, _ = p.communicate(timeout=self.timeout)
+                # ad-hoc Python 2/3 str/bytes handling
+                if type(out) == bytes:
+                    out = out.decode()
+
+                # Remove the last newline
+                if out.endswith('\n'):
+                    out = out[:-1]
+
+                self.result = out
+            except (Exception):
+                # TODO: print error to console
+                pass
+        else:
+            try:
+                tmp_global = {
+                    "math": math,
+                    "datetime": datetime
+                }
+                code = compile(self.original, '<string>', 'eval')
+                self.result = eval(code, tmp_global)
+            except (ValueError, SyntaxError):
+                pass
